@@ -5,12 +5,11 @@ DATA_PATH = 'data/placementdata.csv'
 
 app = Flask(__name__)
 
-
 columns = ["CGPA","Internships","Projects","Workshops/Certifications",
            "AptitudeTestScore","SoftSkillsRating","ExtracurricularActivities",
            "PlacementTraining","SSC_Marks","HSC_Marks","PlacementStatus"]
 
-facet = ["ExtracurricularActivities", "PlacementTraining", "PlacementStatus"]
+facet_options = ["ExtracurricularActivities", "PlacementTraining", "PlacementStatus"]
 
 continuous = ["Internships", "Projects", "AptitudeTestScore",
               "SoftSkillsRating", "SSC_Marks", "HSC_Marks"]
@@ -19,8 +18,6 @@ dropdown_options = continuous + ["Workshops/Certifications", "CGPA"]
 
 discrete_columns = ["ExtracurricularActivities", "PlacementTraining"]
 discrete_options = ["Yes", "No"]
-
-
 
 # Connect to DuckDB and read the CSV file into a table
 con = duckdb.connect(database=':memory:')
@@ -37,7 +34,6 @@ def index():
     scatter_ranges = scatter_ranges_results.iloc[0].tolist()
 
     filter_ranges_query = 'SELECT ' + continuous_queries + ' FROM placement_data' 
-
     
     filter_ranges_results = con.sql(filter_ranges_query).df()
     fr_list = filter_ranges_results.iloc[0].tolist()
@@ -52,53 +48,9 @@ def index():
         discrete_options=discrete_options,
         filter_ranges=filter_ranges,
         scatter_ranges=scatter_ranges,
-        dropdown_options=dropdown_options
+        dropdown_options=dropdown_options,
+        facet_options=facet_options
     )
-
-# @app.route('/data')
-# def data():
-#     request_data = request.get_json()
-
-#     # Extract slider values and checkboxes
-#     internships_min, internships_max = request_data['filter_ranges']['Internships']
-#     projects_min, projects_max = request_data['filter_ranges']['Projects']
-#     AptitudeTestScore_min, AptitudeTestScore_max = request_data['filter_ranges']['AptitudeTestScore']
-#     SoftSkillsRating_min, SoftSkillsRating_max = request_data['filter_ranges']['SoftSkillsRating']
-#     SSC_Marks_min, SSC_Marks_max = request_data['filter_ranges']['SSC_Marks']
-#     HSC_Marks_min, HSC_Marks_max = request_data['filter_ranges']['HSC_Marks']
-#     # selected_options_EA=request_data['selected_options_EA']
-#     # selected_options_PT=request_data['selected_options_PT']
-
-#     continuous_predicate = f'''
-#     (Internships BETWEEN {internships_min} AND {internships_max})
-#     AND (Projects BETWEEN {projects_min} AND {projects_max})
-#     AND (AptitudeTestScore BETWEEN {AptitudeTestScore_min} AND {AptitudeTestScore_max})
-#     AND (SoftSkillsRating BETWEEN {SoftSkillsRating_min} AND {SoftSkillsRating_max})
-#     AND (SSC_Marks BETWEEN {SSC_Marks_min} AND {SSC_Marks_max})
-#     AND (HSC_Marks BETWEEN {HSC_Marks_min} AND {HSC_Marks_max})
-#     '''
-#     #NEED TO UPDATE TO INCLUDE T/F RADIO BUTTONS
-#     predicate = continuous_predicate
-
-#     # if selected_options_PT:
-#     #     discrete_predicate = f"PlacementTraining IN ({', '.join([f"'{status}'" for status in selected_options_PT])})"
-#     #     predicate = ' AND '.join([continuous_predicate, discrete_predicate])  
-#     # else:
-#     #     predicate = continuous_predicate + ' AND 0 = 1'
-    
-#     # if selected_options_EA:
-#     #     discrete_predicate = f"PlacementTraining IN ({', '.join([f"'{status}'" for status in selected_options_EA])})"
-#     #     predicate = ' AND '.join([continuous_predicate, discrete_predicate])  
-#     # else:
-#     #     predicate = continuous_predicate + ' AND 0 = 1'
-
-#     # print(selected_options_PT)
-#     # print(selected_options_EA)
-
-#     #Scatterplot
-#     scatter_query = f'SELECT X, Y FROM placement_data WHERE {predicate}'
-#     scatt`er_results = con.sql(scatter_query).df()
-#     scatter_data = (scatter_results.to_dict(orient='records'))
 
 
 #     # Query the pre-loaded table
@@ -119,11 +71,12 @@ def update():
     SSC_Marks_min, SSC_Marks_max = filters['SSC_Marks']
     HSC_Marks_min, HSC_Marks_max = filters['HSC_Marks']
 
+    # Extract facet 
+    facet = request_data['facet']
 
     # Get x and y axis
     X = request_data['x_axis']
     Y = request_data['y_axis']
-
 
     selected_options_EA=request_data['selected_options_EA']
     selected_options_PT=request_data['selected_options_PT']
@@ -152,25 +105,33 @@ def update():
 
     print("Final Predicate:", predicate)
 
-    #Scatterplot
-    scatter_query = f'SELECT {X}, {Y} FROM placement_data WHERE {predicate}'
-    # print(scatter_query)
-    scatter_results = con.sql(scatter_query).df()
-    scatter_data = (scatter_results.to_dict(orient='records'))
+    binary_dict = {
+        "PlacementStatus": ["Placed", "NotPlaced"],
+        "ExtracurricularActivities": ["Yes", "No"],
+        "PlacementTraining": ["Yes", "No"]
+    }
+
+    # Scatter Data 1, where the facet is not selected
+    scatter_query_1 = f'SELECT {X}, {Y} FROM placement_data WHERE {predicate}AND {facet} = \'{binary_dict[facet][1]}\''
+    scatter_results_1 = con.sql(scatter_query_1).df()
+    scatter_data_1 = (scatter_results_1.to_dict(orient='records'))
+
+    # Scatter Data 2, where the facet is selected
+    scatter_query_2 = f'SELECT {X}, {Y} FROM placement_data WHERE {predicate} AND {facet} = \'{binary_dict[facet][0]}\''
+    scatter_results_2 = con.sql(scatter_query_2).df()
+    scatter_data_2 = (scatter_results_2.to_dict(orient='records'))
 
     scatter_ranges_query = f'SELECT MIN({X}), MAX({X}), MIN({Y}), MAX({Y}) FROM placement_data'
+    print("Scatter Ranges Query:", scatter_ranges_query)
     scatter_ranges = con.sql(scatter_ranges_query).df()
 
     scatter_ranges = scatter_ranges.iloc[0].tolist()
 
 
-
-
-
     print("Scatter Ranges:", scatter_ranges)
 
     # Query the pre-loaded table
-    return jsonify({'scatter_data': scatter_data, 'scatter_ranges': scatter_ranges})
+    return jsonify({'scatter_data_1': scatter_data_1, 'scatter_data_2': scatter_data_2, 'scatter_ranges': scatter_ranges})
 
 if __name__ == '__main__':
     app.run(debug=True)

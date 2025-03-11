@@ -14,105 +14,109 @@
     <script src="static/js/script.js"></script>
   </header>
   <body>
-    <div class="container">
-      <div style="float: left">
-        <div>
-          <h1>Placement Data</h1>
-          <div id="content"></div>
-        </div>
-        <div>
-          <h1>Placement Scatter Plot</h1>
-          <div id="scatterplot_dropdown">
-            <p>
-              <label for="xAxisDropdown"> Select x-axis: </label>
-              <select
-                id="xAxisDropdown"
-                onchange="update(scatter1_svg, scatter2_svg, scatter_scale)">
-                {% for option in dropdown_options %}
-                <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-              </select>
+    <h1 class="title">Placement Data Visualization</h1>
+    <div class="scatterContainer">
+      <div
+        id="scatterplot_dropdown"
+        class="scatterPlot">
+        <h1 class="plotTitle">Scatter Plot</h1>
+        <div class="choosers">
+          <p>
+            <label for="xAxisDropdown"> Select x-axis: </label>
+            <select
+              id="xAxisDropdown"
+              onchange="update(scatter1_svg, scatter2_svg, scatter_scale)">
+              {% for option in dropdown_options %}
+              <option value="{{ option }}">{{ option }}</option>
+              {% endfor %}
+            </select>
 
-              <br />
-              <label for="yAxisDropdown"> Select y-axis: </label>
-              <select
-                id="yAxisDropdown"
-                onchange="update(scatter1_svg, scatter2_svg, scatter_scale)">
-                {% for option in dropdown_options %}
-                <option value="{{ option }}">{{ option }}</option>
-                {% endfor %}
-              </select>
-            </p>
+            <br />
+            <label for="yAxisDropdown"> Select y-axis: </label>
+            <select
+              id="yAxisDropdown"
+              onchange="update(scatter1_svg, scatter2_svg, scatter_scale)">
+              {% for option in dropdown_options %}
+              <option value="{{ option }}">{{ option }}</option>
+              {% endfor %}
+            </select>
+            <br />
+          </p>
+          <label for="facetDropdown"> Select facet: </label>
+          <select
+            id="facetDropdown"
+            onchange="update(scatter1_svg, scatter2_svg, scatter_scale)">
+            {% for option in facet_options %}
+            <option value="{{ option }}">{{ option }}</option>
+            {% endfor %}
+          </select>
+          <!-- Checkbox section for ExtracurricularActivities -->
+          <div id="extracurricular-filter">
+            <h3>Extracurricular Activities</h3>
+            <input
+              type="checkbox"
+              class="checkboxExtracurricular"
+              value="Yes"
+              onchange="update_selected_options()"
+              checked />
+            <label>Yes</label>
+            <input
+              type="checkbox"
+              class="checkboxExtracurricular"
+              value="No"
+              onchange="update_selected_options()"
+              checked />
+            <label>No</label>
+          </div>
+
+          <!-- Checkbox section for PlacementTraining -->
+          <div id="placement-training-filter">
+            <h3>Placement Training</h3>
+            <input
+              type="checkbox"
+              class="checkboxPlacement"
+              value="Yes"
+              onchange="update_selected_options()"
+              checked />
+            <label>Yes</label>
+            <input
+              type="checkbox"
+              class="checkboxPlacement"
+              value="No"
+              onchange="update_selected_options()"
+              checked />
+            <label>No</label>
           </div>
         </div>
         <div id="scatter"></div>
       </div>
-      <h3>Internships</h3>
-      <div
-        id="Internships-slider"
-        style="width: 400pt; display: inline-block"></div>
-      <h3>Projects</h3>
-      <div
-        id="Projects-slider"
-        style="width: 400pt; display: inline-block"></div>
-      <h3>Aptitude Test Score</h3>
-      <div
-        id="AptitudeTestScore-slider"
-        style="width: 400pt; display: inline-block"></div>
-      <h3>Soft Skills Rating</h3>
-      <div
-        id="SoftSkillsRating-slider"
-        style="width: 400pt; display: inline-block"></div>
-      <h3>SSC Marks</h3>
-      <div
-        id="SSC_Marks-slider"
-        style="width: 400pt; display: inline-block"></div>
-      <h3>HSC Marks</h3>
-      <div
-        id="HSC_Marks-slider"
-        style="width: 400pt; display: inline-block"></div>
-    </div>
-
-    <!-- Checkbox section for ExtracurricularActivities -->
-    <div
-      id="extracurricular-filter"
-      style="margin-top: 10px">
-      <h3>Extracurricular Activities</h3>
-      <input
-        type="checkbox"
-        class="checkboxExtracurricular"
-        value="Yes"
-        onchange="update_selected_options()"
-        checked />
-      <label>Yes</label>
-      <input
-        type="checkbox"
-        class="checkboxExtracurricular"
-        value="No"
-        onchange="update_selected_options()"
-        checked />
-      <label>No</label>
-    </div>
-
-    <!-- Checkbox section for PlacementTraining -->
-    <div
-      id="placement-training-filter"
-      style="margin-top: 10px">
-      <h3>Placement Training</h3>
-      <input
-        type="checkbox"
-        class="checkboxPlacement"
-        value="Yes"
-        onchange="update_selected_options()"
-        checked />
-      <label>Yes</label>
-      <input
-        type="checkbox"
-        class="checkboxPlacement"
-        value="No"
-        onchange="update_selected_options()"
-        checked />
-      <label>No</label>
+      <div class="sliders">
+        <h2>Sliders</h2>
+        <h3>Internships</h3>
+        <div
+          id="Internships-slider"
+          style="width: 300pt; display: inline-block"></div>
+        <h3>Projects</h3>
+        <div
+          id="Projects-slider"
+          style="width: 300pt; display: inline-block"></div>
+        <h3>Aptitude Test Score</h3>
+        <div
+          id="AptitudeTestScore-slider"
+          style="width: 300pt; display: inline-block"></div>
+        <h3>Soft Skills Rating</h3>
+        <div
+          id="SoftSkillsRating-slider"
+          style="width: 300pt; display: inline-block"></div>
+        <h3>SSC Marks</h3>
+        <div
+          id="SSC_Marks-slider"
+          style="width: 300pt; display: inline-block"></div>
+        <h3>HSC Marks</h3>
+        <div
+          id="HSC_Marks-slider"
+          style="width: 300pt; display: inline-block"></div>
+      </div>
     </div>
   </body>
   <script>
@@ -127,7 +131,6 @@
     scatter1_svg = draw_svg('scatter', margin, width, height)
     scatter2_svg = draw_svg('scatter', margin, width, height)
     scatter_scale = draw_axes('scatter', scatter1_svg, width, height, {{scatter_ranges[:2]}}, {{scatter_ranges[2:]}}, false)
-
 
     console.log("Selected x-axis:", x_option);
     console.log("Selected y-axis:", y_option);

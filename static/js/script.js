@@ -16,6 +16,15 @@ function draw_xaxis(plot_name, svg, height, scale) {
     .attr("class", plot_name + "-xaxis")
     .attr("transform", "translate(0," + height + ")")
     .call(d3.axisBottom(scale).tickSize(0));
+
+  // label
+  svg
+    .append("text")
+    .attr("class", plot_name + "-xlabel")
+    .attr("text-anchor", "middle")
+    .attr("x", width / 2)
+    .attr("y", height + margin.bottom - 5)
+    .text(document.getElementById("xAxisDropdown").value);
 }
 
 function draw_yaxis(plot_name, svg, scale) {
@@ -23,11 +32,21 @@ function draw_yaxis(plot_name, svg, scale) {
     .append("g")
     .attr("class", plot_name + "-yaxis")
     .call(d3.axisLeft(scale));
+  
+  // label
+  svg
+    .append("text")
+    .attr("class", plot_name + "-ylabel")
+    .attr("text-anchor", "middle")
+    .attr("transform", "rotate(-90)")
+    .attr("x", -height / 2)
+    .attr("y", -margin.left + 15)
+    .text(document.getElementById("yAxisDropdown").value);
 }
 
 function draw_axis(plot_name, axis, svg, height, domain, range, discrete) {
   if (discrete) {
-    var scale = d3.scaleBand().domain(domain).range(range).padding([0.2]);
+    var scale = d3.scaleBand().domain(domain).range(range).padding([1]);
   } else {
     var scale = d3.scaleLinear().domain(domain).range(range);
   }
@@ -101,7 +120,7 @@ function draw_scatter(data, svg, scale) {
 
   scatter_scale = draw_axes(
     "scatter",
-    scatter1_svg,
+    svg,
     width,
     height,
     scale.slice(0, 2),
@@ -115,7 +134,7 @@ function draw_scatter(data, svg, scale) {
 
   x_axis = document.getElementById("xAxisDropdown").value;
   y_axis = document.getElementById("yAxisDropdown").value;
-  // Add dots to the scatterplot
+
   let dots = svg
     .append("g")
     .selectAll(".dot")
@@ -128,26 +147,42 @@ function draw_scatter(data, svg, scale) {
     .attr("stroke", "Black")
     .attr("stroke-width", 1)
     .attr("fill", "red");
-}
 
-// Function to update the selectedDays array
-function updateSelectedDays() {
-  var day = [];
+  //x-axis label
+  // svg
+  //   .append("text")
+  //   .attr("class", plot_name + "-xlabel")
+  //   .attr("text-anchor", "middle")
+  //   .attr("x", width / 2)
+  //   .attr("y", height + margin.bottom - 5)
+  //   .text(x_axis);
 
-  var checkedBoxes = d3.selectAll('input[type="checkbox"]:checked');
 
-  checkedBoxes.each(function () {
-    // console.log(this.value);
-    day.push(this.value);
-  });
+  // // //y-axis label
+  // svg
+  //   .append("text")
+  //   .attr("class", plot_name + "-ylabel")
+  //   .attr("text-anchor", "middle")
+  //   .attr("transform", "rotate(-90)")
+  //   .attr("x", -height / 2)
+  //   .attr("y", -margin.left + 15)
+  //   .text(y_axis);
 
-  // console.log("Selected Days:", day);
-  return day;
-}
+  // facet label
+  // const facet_name = document.getElementById("facetDropdown").value;
+  // const facet_value = svg.attr("id");
+  // svg.append("text")
+    // .attr("class", plot_name + "-title")
+    // .attr("text-anchor", "middle")
+    // .attr("x", width / 2)
+    // .attr("y", -margin.top / 2)
+    // .style("font-size", "16px")
+    // .style("font-weight", "bold")
+    // .text(facet + ": " + facet_value);
+  }
 
-// COMPLETED: Write a function that extracts the selected days and minimum/maximum values for each slider
+//Extracts the minimum/maximum values for each slider
 function get_params() {
-  //var day = []
   var internships = [0, 0];
   var projects = [0, 0];
   var aptitude = [0, 0];
@@ -155,11 +190,6 @@ function get_params() {
   var ssc_marks = [0, 0];
   var hsc_marks = [0, 0];
 
-  // extract and update the selected days
-  // day = updateSelectedDays();
-  // d3.selectAll(".checkboxDays").on("change", updateSelectedDays);
-
-  // extract and update the minimum and maximum values for each slider
   const internship_slider =
     document.getElementById("Internships-slider").noUiSlider;
   internships = [internship_slider.get()[0], internship_slider.get()[1]];
@@ -185,15 +215,13 @@ function get_params() {
     document.getElementById("HSC_Marks-slider").noUiSlider;
   hsc_marks = [hsc_marks_slider.get()[0], hsc_marks_slider.get()[1]];
 
+  const facet = document.getElementById("facetDropdown").value;
+
   const x_axis = document.getElementById("xAxisDropdown").value;
   const y_axis = document.getElementById("yAxisDropdown").value;
 
   console.log(x_axis);
   console.log(y_axis);
-
-  //console.log("Humidity:", humidity);
-  //console.log("Temp:", temp);
-  //console.log("Wind:", wind);
 
   let selected_options_EA = [];
   document
@@ -222,14 +250,27 @@ function get_params() {
     selected_options_PT: selected_options_PT,
     x_axis: x_axis,
     y_axis: y_axis,
+    facet: facet,
   };
 }
 
-// TODO: Write a function that removes the old data points and redraws the scatterplot
-function update_scatter(data, svg, scale) {
-  // removes the old data points
-  svg.selectAll(".dot").remove();
-  draw_scatter(data, svg, scale);
+// Removes the old data points and redraws the scatterplot
+function update_scatter(scatter_data_1, svg_1, scatter_data_2, svg_2, scale) {
+  // removes the old data points, axes, labels
+  svg_1.selectAll(".dot").remove();
+  svg_2.selectAll(".dot").remove();
+  svg_1.selectAll(".scatter-xaxis").remove();
+  svg_2.selectAll(".scatter-xaxis").remove();
+  svg_1.selectAll(".scatter-yaxis").remove();
+  svg_2.selectAll(".scatter-yaxis").remove();
+  svg_1.selectAll(".scatter-xlabel").remove();
+  svg_2.selectAll(".scatter-xlabel").remove();
+  svg_1.selectAll(".scatter-ylabel").remove();
+  svg_2.selectAll(".scatter-ylabel").remove();
+
+  // redraw the scatterplot
+  draw_scatter(scatter_data_1, svg_1, scale);
+  draw_scatter(scatter_data_2, svg_2, scale);
 }
 
 function update(scatter1_svg, scatter2_svg, scatter_scale) {
@@ -247,14 +288,11 @@ function update(scatter1_svg, scatter2_svg, scatter_scale) {
     var results = JSON.parse(JSON.stringify(await response.json()));
     console.log("Results:", results);
     update_scatter(
-      results["scatter_data"],
+      results["scatter_data_1"],
       scatter1_svg,
+      results["scatter_data_2"],
+      scatter2_svg,
       results["scatter_ranges"]
     );
-    // update_scatter(
-    //   results["scatter_data"],
-    //   scatter2_svg,
-    //   results["scatter_ranges"]
-    // );
   });
 }

@@ -1,34 +1,32 @@
 body {
-	font-family: sans-serif;
-	font-size: 10pt;
+  font-family: sans-serif;
+  font-size: 10pt;
 }
 
 text {
-	font-family: sans-serif;
-	font-size: 10pt;
+  font-family: sans-serif;
+  font-size: 10pt;
 }
 input {
-	vertical-align: middle;
+  vertical-align: middle;
 }
 .noUi-tooltip {
-	display: none;
+  display: none;
 }
 .noUi-active .noUi-tooltip {
-	display: block;
+  display: block;
 }
-.container
-{
-	text-align:center;
-	padding-left: 20px;
+.container {
+  text-align: center;
+  padding-left: 20px;
 }
-.sliderHumidity
-{
-  text-align:center;
+.sliderHumidity {
+  text-align: center;
 }
 .tooltip {
   position: absolute;
   font-size: 12px;
-  width:  auto;
+  width: auto;
   height: auto;
   pointer-events: none;
   background-color: white;
@@ -41,4 +39,37 @@ input {
   fill: none;
   stroke: #000;
   shape-rendering: crispEdges;
+}
+
+.scatterContainer {
+  text-align: left;
+  /* padding-left: 20px; */
+  display: flex;
+  flex-direction: row;
+}
+.title {
+  font-size: 50px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+.plotTitle {
+  font-size: 30px;
+  font-weight: bold;
+  color: rgb(42, 42, 156);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.scatterPlot {
+  display: flex;
+  flex-direction: column;
+}
+.sliders {
+  margin-left: 5%;
+}
+.choosers {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
