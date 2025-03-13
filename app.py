@@ -59,7 +59,6 @@ def index():
 @app.route('/update', methods=['POST'])
 def update():
     request_data = request.get_json()
-    print(request_data)
 
     filters = request_data['filter_values']
 
@@ -93,17 +92,21 @@ def update():
     # Discrete filters (checkboxes)
     discrete_predicates = []
     if selected_options_EA:
-        discrete_predicates.append(f"ExtracurricularActivities IN ({', '.join([f"'{status}'" for status in selected_options_EA])})")
+        # discrete_predicates.append(f"ExtracurricularActivities IN ({', '.join([f"'{status}'" for status in selected_options_EA])})")
+        discrete_predicates.append("ExtracurricularActivities IN ({})".format(
+            ', '.join(f"'{status}'" for status in selected_options_EA)
+        ))
     if selected_options_PT:
-        discrete_predicates.append(f"PlacementTraining IN ({', '.join([f"'{status}'" for status in selected_options_PT])})")
-
+        # discrete_predicates.append(f"PlacementTraining IN ({', '.join([f"'{status}'" for status in selected_options_PT])})")
+        discrete_predicates.append("PlacementTraining IN ({})".format(
+            ', '.join(f"'{status}'" for status in selected_options_PT)
+        ))
     # Combine continuous and discrete filters
     if discrete_predicates:
         predicate = f"{continuous_predicate} AND {' AND '.join(discrete_predicates)}"
     else:
         predicate = f"{continuous_predicate} AND 0 = 1"  # If no checkboxes are selected, return empty results
 
-    print("Final Predicate:", predicate)
 
     binary_dict = {
         "PlacementStatus": ["Placed", "NotPlaced"],
@@ -112,23 +115,22 @@ def update():
     }
 
     # Scatter Data 1, where the facet is not selected
-    scatter_query_1 = f'SELECT {X}, {Y} FROM placement_data WHERE {predicate}AND {facet} = \'{binary_dict[facet][1]}\''
+    scatter_query_1 = f'SELECT "{X}", "{Y}", COUNT(*) AS student_count FROM placement_data WHERE {predicate} AND {facet} = \'{binary_dict[facet][1]}\' GROUP BY "{X}", "{Y}"'
     scatter_results_1 = con.sql(scatter_query_1).df()
     scatter_data_1 = (scatter_results_1.to_dict(orient='records'))
 
     # Scatter Data 2, where the facet is selected
-    scatter_query_2 = f'SELECT {X}, {Y} FROM placement_data WHERE {predicate} AND {facet} = \'{binary_dict[facet][0]}\''
+    scatter_query_2 = f'SELECT "{X}", "{Y}", COUNT(*) AS student_count FROM placement_data WHERE {predicate} AND {facet} = \'{binary_dict[facet][0]}\' GROUP BY "{X}", "{Y}"'
+
     scatter_results_2 = con.sql(scatter_query_2).df()
     scatter_data_2 = (scatter_results_2.to_dict(orient='records'))
 
-    scatter_ranges_query = f'SELECT MIN({X}), MAX({X}), MIN({Y}), MAX({Y}) FROM placement_data'
-    print("Scatter Ranges Query:", scatter_ranges_query)
+    scatter_ranges_query = f'SELECT MIN("{X}"), MAX("{X}"), MIN("{Y}"), MAX("{Y}") FROM placement_data'
     scatter_ranges = con.sql(scatter_ranges_query).df()
 
     scatter_ranges = scatter_ranges.iloc[0].tolist()
 
 
-    print("Scatter Ranges:", scatter_ranges)
 
     # Query the pre-loaded table
     return jsonify({'scatter_data_1': scatter_data_1, 'scatter_data_2': scatter_data_2, 'scatter_ranges': scatter_ranges})

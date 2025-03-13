@@ -73,3 +73,15 @@ input {
   align-items: center;
   margin-bottom: 10px;
 }
+#legendContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+#legendContainer h3 {
+  text-align: center;
+  margin: 0;
+}

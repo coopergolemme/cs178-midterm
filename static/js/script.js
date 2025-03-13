@@ -32,7 +32,7 @@ function draw_yaxis(plot_name, svg, scale) {
     .append("g")
     .attr("class", plot_name + "-yaxis")
     .call(d3.axisLeft(scale));
-  
+
   // label
   svg
     .append("text")
@@ -85,7 +85,6 @@ function draw_axes(
     [height, 0],
     false
   );
-
   //print x_scale, y_scale
 
   return { x: x_scale, y: y_scale };
@@ -99,7 +98,6 @@ function draw_slider(
   scatter2_svg,
   scatter_scale
 ) {
-  console.log(column, min, max);
   slider = document.getElementById(column + "-slider");
 
   noUiSlider.create(slider, {
@@ -115,8 +113,72 @@ function draw_slider(
   });
 }
 
+function draw_legend(minStudents, maxStudents, colorScale) {
+  let legendDiv = d3.select("#legend");
+  legendDiv.html("");
+
+  let legendSvg = legendDiv
+    .append("svg")
+    // .attr("transform", "translate(375, 0)")
+    .attr("width", 200)
+    .attr("height", 50);
+
+  // Define a gradient in SVG
+  let defs = legendSvg.append("defs");
+  let linearGradient = defs
+    .append("linearGradient")
+    .attr("id", "legendGradient")
+    .attr("x1", "0%")
+    .attr("y1", "0%")
+    .attr("x2", "100%")
+    .attr("y2", "0%");
+
+  linearGradient
+    .append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", colorScale.range()[0]);
+
+  linearGradient
+    .append("stop")
+    .attr("offset", "100%")
+    .attr("stop-color", colorScale.range()[1]);
+
+  // gradient bar
+  legendSvg
+    .append("rect")
+    .attr("x", 20)
+    .attr("y", 20)
+    .attr("width", 160)
+    .attr("height", 15)
+    .style("fill", "url(#legendGradient)");
+
+  // min and max labels
+  legendSvg
+    .append("text")
+    .attr("x", 15)
+    .attr("y", 45)
+    .style("font-size", "12px")
+    .text(minStudents);
+
+  legendSvg
+    .append("text")
+    .attr("x", 190)
+    .attr("y", 45)
+    .style("font-size", "12px")
+    .attr("text-anchor", "end")
+    .text(maxStudents);
+}
+
 function draw_scatter(data, svg, scale) {
-  console.log("Drawing scatterplot", scale);
+  const tooltip = d3
+    .select("body")
+    .append("div")
+    .attr("class", "tooltip")
+    .style("position", "absolute")
+    .style("background-color", "lightgray")
+    .style("padding", "5px")
+    .style("border-radius", "5px")
+    .style("visibility", "hidden");
 
   scatter_scale = draw_axes(
     "scatter",
@@ -135,6 +197,12 @@ function draw_scatter(data, svg, scale) {
   x_axis = document.getElementById("xAxisDropdown").value;
   y_axis = document.getElementById("yAxisDropdown").value;
 
+  const colorScale = d3
+    .scaleLinear()
+    .domain([0, d3.max(data, (d) => d.student_count)])
+    //.range(["steelblue", "darkred"]);
+    .range(["#F4FB56", "#E0060A"]);
+
   let dots = svg
     .append("g")
     .selectAll(".dot")
@@ -143,43 +211,33 @@ function draw_scatter(data, svg, scale) {
     .attr("class", "dot")
     .attr("cx", (d) => xScale_scatter(d[x_axis]))
     .attr("cy", (d) => yScale_scatter(d[y_axis]))
-    .attr("r", 3)
+    .attr("r", 4)
     .attr("stroke", "Black")
     .attr("stroke-width", 1)
-    .attr("fill", "red");
+    .attr("fill", (d) => colorScale(d.student_count))
+    .on("mouseover", (event, d) => {
+      tooltip
+        .style("visibility", "visible")
+        .html(
+          `${x_axis}: ${d[x_axis]}<br>${y_axis}: ${d[y_axis]}<br>Number of Students: ${d.student_count}`
+        );
+      d3.select(event.currentTarget).transition().duration(100).attr("r", 8);
+    })
+    .on("mousemove", (event) => {
+      tooltip
+        .style("top", event.pageY - 20 + "px")
+        .style("left", event.pageX + 10 + "px");
+    })
+    .on("mouseout", () => {
+      tooltip.style("visibility", "hidden");
+      d3.select(event.currentTarget).transition().duration(100).attr("r", 4);
+    });
 
-  //x-axis label
-  // svg
-  //   .append("text")
-  //   .attr("class", plot_name + "-xlabel")
-  //   .attr("text-anchor", "middle")
-  //   .attr("x", width / 2)
-  //   .attr("y", height + margin.bottom - 5)
-  //   .text(x_axis);
+  const minStudents = d3.min(data, (d) => d.student_count);
+  const maxStudents = d3.max(data, (d) => d.student_count);
 
-
-  // // //y-axis label
-  // svg
-  //   .append("text")
-  //   .attr("class", plot_name + "-ylabel")
-  //   .attr("text-anchor", "middle")
-  //   .attr("transform", "rotate(-90)")
-  //   .attr("x", -height / 2)
-  //   .attr("y", -margin.left + 15)
-  //   .text(y_axis);
-
-  // facet label
-  // const facet_name = document.getElementById("facetDropdown").value;
-  // const facet_value = svg.attr("id");
-  // svg.append("text")
-    // .attr("class", plot_name + "-title")
-    // .attr("text-anchor", "middle")
-    // .attr("x", width / 2)
-    // .attr("y", -margin.top / 2)
-    // .style("font-size", "16px")
-    // .style("font-weight", "bold")
-    // .text(facet + ": " + facet_value);
-  }
+  return { colorScale, minStudents, maxStudents };
+}
 
 //Extracts the minimum/maximum values for each slider
 function get_params() {
@@ -219,9 +277,6 @@ function get_params() {
 
   const x_axis = document.getElementById("xAxisDropdown").value;
   const y_axis = document.getElementById("yAxisDropdown").value;
-
-  console.log(x_axis);
-  console.log(y_axis);
 
   let selected_options_EA = [];
   document
@@ -267,14 +322,59 @@ function update_scatter(scatter_data_1, svg_1, scatter_data_2, svg_2, scale) {
   svg_2.selectAll(".scatter-xlabel").remove();
   svg_1.selectAll(".scatter-ylabel").remove();
   svg_2.selectAll(".scatter-ylabel").remove();
+  svg_1.selectAll(".scatter-title").remove();
+  svg_2.selectAll(".scatter-title").remove();
 
   // redraw the scatterplot
-  draw_scatter(scatter_data_1, svg_1, scale);
-  draw_scatter(scatter_data_2, svg_2, scale);
+  // draw_scatter(scatter_data_1, svg_1, scale);
+  // draw_scatter(scatter_data_2, svg_2, scale);
+  let scatter1 = draw_scatter(scatter_data_1, svg_1, scale);
+  let scatter2 = draw_scatter(scatter_data_2, svg_2, scale);
+
+  const minStudents = Math.min(
+    scatter1.minStudents ?? scatter2.minStudents,
+    scatter2.minStudents ?? scatter1.minStudents
+  );
+  const maxStudents = Math.max(
+    scatter1.maxStudents ?? scatter2.maxStudents,
+    scatter2.maxStudents ?? scatter1.maxStudents
+  );
+
+  draw_legend(minStudents, maxStudents, scatter1.colorScale);
+
+  //facet title
+  const binary_dict = {
+    PlacementStatus: ["Placed", "NotPlaced"],
+    ExtracurricularActivities: ["Yes", "No"],
+    PlacementTraining: ["Yes", "No"],
+  };
+
+  draw_title(binary_dict, svg_1, 0);
+  draw_title(binary_dict, svg_2, 1);
+}
+
+function draw_title(binary_dict, svg, graph_num) {
+  const facet_name = document.getElementById("facetDropdown").value;
+
+  let facet_value;
+  if (graph_num == 0) {
+    facet_value = binary_dict[facet_name][1];
+  } else if (graph_num == 1) {
+    facet_value = binary_dict[facet_name][0];
+  }
+
+  svg
+    .append("text")
+    .attr("class", "scatter-title")
+    .attr("text-anchor", "middle")
+    .attr("x", width / 2)
+    .attr("y", -margin.top / 2)
+    .style("font-size", "16px")
+    .style("font-weight", "bold")
+    .text(facet_name + ": " + facet_value);
 }
 
 function update(scatter1_svg, scatter2_svg, scatter_scale) {
-  console.log("Updating...");
   params = get_params();
   fetch("/update", {
     method: "POST",
@@ -286,7 +386,7 @@ function update(scatter1_svg, scatter2_svg, scatter_scale) {
     }),
   }).then(async function (response) {
     var results = JSON.parse(JSON.stringify(await response.json()));
-    console.log("Results:", results);
+
     update_scatter(
       results["scatter_data_1"],
       scatter1_svg,

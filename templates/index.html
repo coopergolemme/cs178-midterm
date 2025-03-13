@@ -89,6 +89,10 @@
           </div>
         </div>
         <div id="scatter"></div>
+        <div id="legendContainer">
+          <h3>Number of Students</h3>
+          <div id="legend"></div>
+        </div>
       </div>
       <div class="sliders">
         <h2>Sliders</h2>
@@ -132,8 +136,7 @@
     scatter2_svg = draw_svg('scatter', margin, width, height)
     scatter_scale = draw_axes('scatter', scatter1_svg, width, height, {{scatter_ranges[:2]}}, {{scatter_ranges[2:]}}, false)
 
-    console.log("Selected x-axis:", x_option);
-    console.log("Selected y-axis:", y_option);
+
 
     {% for column, (min,max) in filter_ranges.items() %}
       draw_slider('{{column}}', {{min}}, {{max}}, scatter1_svg, scatter2_svg, scatter_scale)
